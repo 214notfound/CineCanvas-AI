@@ -1,0 +1,80 @@
+{
+  "oneLineDiagnosis": "夕阳天空色彩极其浓郁，但地面建筑和街道完全死黑，丢失了城市烟火气的细节。",
+  "strengths": [
+    "完美的对称式落日构图，冷暖对比的色彩底子非常出色",
+    "天空中的尾迹云线条清晰，为画面增添了极强的动感与故事性"
+  ],
+  "issues": [
+    {
+      "title": "地面暗部死黑，毫无细节",
+      "locationHint": "画面下半部分的建筑群、街道及行驶的车辆"
+    },
+    {
+      "title": "太阳周围高光过曝，略显刺眼",
+      "locationHint": "画面正中央的落日及周边最亮区域"
+    }
+  ],
+  "direction": "在保留绝美夕阳的前提下，大幅挽救暗部细节，打造温暖、通透且有呼吸感的城市落日大片。",
+  "steps": [
+    {
+      "slider": "shadows",
+      "direction": "increase",
+      "targetRange": {
+        "min": 45,
+        "max": 65
+      },
+      "reason": "往右大幅拖动“阴影”滑块，把原本漆黑一片的楼房和街道细节“拔”出来，让城市恢复生机。",
+      "order": 1
+    },
+    {
+      "slider": "highlights",
+      "direction": "decrease",
+      "targetRange": {
+        "min": -40,
+        "max": -20
+      },
+      "reason": "往左拖动“高光”，压暗太阳周围过亮的光晕，找回天空红橙过渡的色彩层次，让太阳不那么刺眼。",
+      "order": 2
+    },
+    {
+      "slider": "exposure",
+      "direction": "increase",
+      "targetRange": {
+        "min": 10,
+        "max": 22
+      },
+      "reason": "稍微往右拉一点“曝光”，整体提升照片的亮度，让画面告别沉闷，变得更加通透。",
+      "order": 3
+    },
+    {
+      "slider": "contrast",
+      "direction": "decrease",
+      "targetRange": {
+        "min": -25,
+        "max": -10
+      },
+      "reason": "往左稍微降低“对比度”，减弱天空与地面极端的明暗反差，让整张照片的视觉感受更柔和、更自然。",
+      "order": 4
+    },
+    {
+      "slider": "temperature",
+      "direction": "increase",
+      "targetRange": {
+        "min": 8,
+        "max": 18
+      },
+      "reason": "往右微调“色温”，给画面注入更多暖黄色，强化夕阳西下时那种温暖、治愈的黄金时刻氛围。",
+      "order": 5
+    },
+    {
+      "slider": "vibrance",
+      "direction": "increase",
+      "targetRange": {
+        "min": 10,
+        "max": 22
+      },
+      "reason": "往右拉动“自然饱和度”，让天空中原本较淡的色彩更鲜艳，同时避免已经很红的区域色彩过载溢出。",
+      "order": 6
+    }
+  ]
+}

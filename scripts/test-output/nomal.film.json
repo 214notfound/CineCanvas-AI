@@ -1,0 +1,74 @@
+{
+  "oneLineDiagnosis": "日光直射导致画面反差过硬、高光刺眼，且色调偏冷，缺乏电影故事感。",
+  "strengths": [
+    "人物抓拍神态非常生动自然，充满情绪张力",
+    "背景绿植提供了良好的空间层次感"
+  ],
+  "issues": [
+    {
+      "title": "高光过曝，白色小狗毛发细节缺失",
+      "locationHint": "画面中央的白色小狗"
+    },
+    {
+      "title": "暗部死黑，衣服和长椅阴影处显得沉重",
+      "locationHint": "女士的黑色短袖及长椅下方"
+    },
+    {
+      "title": "色调生冷，缺乏温馨的午后电影氛围",
+      "locationHint": "整张照片的绿色背景与人物皮肤"
+    }
+  ],
+  "direction": "通过降低对比、提亮暗部来消除硬朗的日光感，并注入温暖色温，打造柔和温馨的电影感。",
+  "steps": [
+    {
+      "slider": "temperature",
+      "direction": "increase",
+      "targetRange": {
+        "min": 15,
+        "max": 25
+      },
+      "reason": "目前画面有些生冷。向右拉动色温滑块，为整张照片洒上一层午后阳光般的金色暖调，这是奠定暖调电影感最关键的一步。",
+      "order": 1
+    },
+    {
+      "slider": "contrast",
+      "direction": "decrease",
+      "targetRange": {
+        "min": -25,
+        "max": -15
+      },
+      "reason": "阳光下的反差太强烈，显得有些刺眼。向左降低对比度，可以让亮暗过渡更柔和，营造出胶片般温柔、平缓的视觉感受。",
+      "order": 2
+    },
+    {
+      "slider": "highlights",
+      "direction": "decrease",
+      "targetRange": {
+        "min": -20,
+        "max": -10
+      },
+      "reason": "白色小狗和男士肩膀在强光下有些晃眼。向左调低高光，可以压制刺眼的亮部，找回小狗毛发的丰富细节。",
+      "order": 3
+    },
+    {
+      "slider": "shadows",
+      "direction": "increase",
+      "targetRange": {
+        "min": 10,
+        "max": 20
+      },
+      "reason": "女士的黑色上衣和长椅暗部有些死黑。向右提升阴影，把暗部细节“拯救”出来，让画面整体更通透、更有呼吸感。",
+      "order": 4
+    },
+    {
+      "slider": "vibrance",
+      "direction": "increase",
+      "targetRange": {
+        "min": 5,
+        "max": 15
+      },
+      "reason": "在降低对比度后，画面可能会显得有些灰暗。稍微提升自然饱和度，可以在保护人物肤色的同时，让衣服和绿植的色彩重新焕发生机。",
+      "order": 5
+    }
+  ]
+}

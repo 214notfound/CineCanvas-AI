@@ -1,0 +1,60 @@
+{
+  "oneLineDiagnosis": "照片整体色调严重偏冷偏蓝，枝干阴影过于沉重，缺乏电影感所需的温暖与柔和氛围。",
+  "strengths": [
+    "前景的花朵细节丰富，层次感很好",
+    "构图具有极佳的纵深感，非常适合表现故事性"
+  ],
+  "issues": [
+    {
+      "title": "色调冷硬蓝紫感过重",
+      "locationHint": "背景建筑与天空区域"
+    },
+    {
+      "title": "暗部死黑、反差过大",
+      "locationHint": "密集的树枝与阴影处"
+    }
+  ],
+  "direction": "通过大幅度提升色温驱散冷蓝色调，并降低对比度、提亮阴影，打造温暖柔和的治愈系电影画面。",
+  "steps": [
+    {
+      "slider": "temperature",
+      "direction": "increase",
+      "targetRange": {
+        "min": 30,
+        "max": 45
+      },
+      "reason": "照片目前蓝紫色调极重，显得冰冷。向右大幅度拉动色温滑块，将冷蓝色转化为温暖的阳光黄，瞬间奠定暖调电影基调。",
+      "order": 1
+    },
+    {
+      "slider": "contrast",
+      "direction": "decrease",
+      "targetRange": {
+        "min": -20,
+        "max": -10
+      },
+      "reason": "树枝的黑色线条太硬。向左降低对比度，让画面整体反差变得柔和，呈现出电影故事片的温柔感。",
+      "order": 2
+    },
+    {
+      "slider": "shadows",
+      "direction": "increase",
+      "targetRange": {
+        "min": 10,
+        "max": 22
+      },
+      "reason": "密集的树干阴影有些死黑。向右调大阴影滑块，把暗部的细节提亮，让画面更通透、不压抑。",
+      "order": 3
+    },
+    {
+      "slider": "vibrance",
+      "direction": "increase",
+      "targetRange": {
+        "min": 8,
+        "max": 18
+      },
+      "reason": "在暖化和柔化后，向右稍微增加自然饱和度，让花朵的粉嫩感和暖意更具生机，同时保护背景不至于过载。",
+      "order": 4
+    }
+  ]
+}

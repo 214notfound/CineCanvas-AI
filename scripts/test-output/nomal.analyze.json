@@ -1,0 +1,74 @@
+{
+  "oneLineDiagnosis": "照片抓拍生动但光影生硬，背景绿植过于刺眼，人物皮肤和白色小狗有些过曝失真。",
+  "strengths": [
+    "人物互动与大笑的表情抓拍得非常自然温馨，极具感染力",
+    "背景有很好的自然虚化效果，主体人物与环境有空间感"
+  ],
+  "issues": [
+    {
+      "title": "高光过曝丢失细节",
+      "locationHint": "白色小狗的毛发以及女士的额头、面部区域"
+    },
+    {
+      "title": "暗部死黑缺乏层次",
+      "locationHint": "女士的黑色T恤以及长椅下方的阴影处"
+    },
+    {
+      "title": "背景绿色过于高饱和、抢镜",
+      "locationHint": "人物后方大面积的绿色灌木丛"
+    }
+  ],
+  "direction": "压制刺眼的高光与绿植饱和度，提亮暗部细节，营造温暖、柔和且高级的户外生活氛围。",
+  "steps": [
+    {
+      "slider": "temperature",
+      "direction": "increase",
+      "targetRange": {
+        "min": 6,
+        "max": 16
+      },
+      "reason": "原图色调偏冷，皮肤显得有些苍白。往右拖动色温滑块，为画面注入阳光般的暖意，让肤色看起来更健康、温馨。",
+      "order": 1
+    },
+    {
+      "slider": "highlights",
+      "direction": "decrease",
+      "targetRange": {
+        "min": -25,
+        "max": -10
+      },
+      "reason": "小狗身上的白毛和女士脸部的高光有些晃眼。往左拉低高光，可以找回小狗毛茸茸的细节，让皮肤光泽更柔和。",
+      "order": 2
+    },
+    {
+      "slider": "shadows",
+      "direction": "increase",
+      "targetRange": {
+        "min": 12,
+        "max": 25
+      },
+      "reason": "女士的黑色上衣和长椅下方的阴影太深了，像个黑洞。往右提亮阴影，能把衣服的褶皱和暗部细节拯救出来。",
+      "order": 3
+    },
+    {
+      "slider": "contrast",
+      "direction": "decrease",
+      "targetRange": {
+        "min": -15,
+        "max": -5
+      },
+      "reason": "原图的明暗反差有些生硬、数码感太强。稍微往左降低对比度，能让整张照片的过渡更温和，有种胶片般的空气感。",
+      "order": 4
+    },
+    {
+      "slider": "saturation",
+      "direction": "decrease",
+      "targetRange": {
+        "min": -12,
+        "max": -4
+      },
+      "reason": "背景的绿色太鲜艳了，抢了人物的风头。稍微往左降低一点整体饱和度，让背景绿植退到幕后，使画面视觉焦点回到人与狗的互动上。",
+      "order": 5
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "oneLineDiagnosis": "照片整体严重偏蓝偏紫，且光线暗淡，让原本娇艳的春花显得冷冰冰、毫无生机。",
+  "strengths": [
+    "前景与背景的虚实关系处理得非常好，具有很强的空间立体感",
+    "花朵细节保留完整，核心对焦区域非常清晰"
+  ],
+  "issues": [
+    {
+      "title": "严重偏蓝偏紫（冷色调过重）",
+      "locationHint": "整张照片，尤其是花瓣和背景建筑"
+    },
+    {
+      "title": "曝光不足，画面整体沉闷暗淡",
+      "locationHint": "画面整体，特别是花朵不够明亮通透"
+    },
+    {
+      "title": "暗部过于死黑，缺乏呼吸感",
+      "locationHint": "背景密集的树枝阴影处"
+    }
+  ],
+  "direction": "通过纠正冷色偏、提亮画面并释放暗部细节，打造温暖、通透、充满生气的春日暖阳感花卉大片。",
+  "steps": [
+    {
+      "slider": "temperature",
+      "direction": "increase",
+      "targetRange": {
+        "min": 12,
+        "max": 25
+      },
+      "reason": "画面目前冷得像冬天。往右拉动色温滑块注入暖黄色，让原本惨白偏蓝的花瓣恢复粉嫩，背景也变得温暖起来。",
+      "order": 1
+    },
+    {
+      "slider": "tint",
+      "direction": "decrease",
+      "targetRange": {
+        "min": -20,
+        "max": -8
+      },
+      "reason": "画面有明显的紫色/品红偏色。往左拉动色调滑块引入一点绿色，能有效中和刺眼的紫色，让花朵的色彩过渡更自然。",
+      "order": 2
+    },
+    {
+      "slider": "exposure",
+      "direction": "increase",
+      "targetRange": {
+        "min": 15,
+        "max": 30
+      },
+      "reason": "整张照片偏暗。往右拉大曝光，让画面整体亮堂起来，这是营造春日明快、空气感的第一步。",
+      "order": 3
+    },
+    {
+      "slider": "shadows",
+      "direction": "increase",
+      "targetRange": {
+        "min": 25,
+        "max": 40
+      },
+      "reason": "背景的树枝太黑、太沉重了。往右拉高阴影，把暗部细节提亮，让画面视觉上更轻盈、不压抑。",
+      "order": 4
+    },
+    {
+      "slider": "whites",
+      "direction": "increase",
+      "targetRange": {
+        "min": 10,
+        "max": 22
+      },
+      "reason": "提亮画面中最亮的部分。往右拉动能让白色和粉色的花瓣更加通透、有光泽，仿佛有阳光洒在上面。",
+      "order": 5
+    },
+    {
+      "slider": "vibrance",
+      "direction": "increase",
+      "targetRange": {
+        "min": 8,
+        "max": 20
+      },
+      "reason": "适当增加自然饱和度，能让花朵的粉色更加鲜活娇艳，同时不会让背景的杂色显得过于刺眼和俗气。",
+      "order": 6
+    }
+  ]
+}

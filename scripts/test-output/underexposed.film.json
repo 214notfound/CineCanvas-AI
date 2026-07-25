@@ -1,0 +1,70 @@
+{
+  "oneLineDiagnosis": "落日余晖非常壮丽，但冷硬的剪影让画面显得反差过大，缺少了电影故事感和暗部细节。",
+  "strengths": [
+    "天空的色彩过渡非常自然，金黄到深橙的渐变极具视觉冲击力",
+    "冷暖对比的框架很好，远处的山峦和近处的建筑形成了不错的空间层次"
+  ],
+  "issues": [
+    {
+      "title": "暗部死黑一片，建筑细节完全丢失",
+      "locationHint": "左右两侧的城市建筑群"
+    },
+    {
+      "title": "反差过硬，缺乏电影胶片的柔和感",
+      "locationHint": "天空与建筑交界处的硬边缘"
+    }
+  ],
+  "direction": "通过大幅度提升暗部和降低对比度，还原阴影细节，打造柔和、温暖且带有呼吸感的复古电影色调。",
+  "steps": [
+    {
+      "slider": "shadows",
+      "direction": "increase",
+      "targetRange": {
+        "min": 20,
+        "max": 35
+      },
+      "reason": "原图建筑完全是死黑。向右拖动‘阴影’滑块，能温柔地唤醒暗部的细节，让建筑不再像一堵生硬的黑墙。",
+      "order": 1
+    },
+    {
+      "slider": "contrast",
+      "direction": "decrease",
+      "targetRange": {
+        "min": -25,
+        "max": -15
+      },
+      "reason": "原图反差太刺眼。向左减少‘对比度’，可以让亮部和暗部的过渡变得像胶片一样温柔、平缓。",
+      "order": 2
+    },
+    {
+      "slider": "blacks",
+      "direction": "increase",
+      "targetRange": {
+        "min": 10,
+        "max": 22
+      },
+      "reason": "向右提升‘黑色’数值，可以让最暗的地方蒙上一层淡淡的灰色，这是营造复古电影‘空气感’的关键一步。",
+      "order": 3
+    },
+    {
+      "slider": "temperature",
+      "direction": "increase",
+      "targetRange": {
+        "min": 5,
+        "max": 15
+      },
+      "reason": "虽然原图已经很暖，但为了达到‘暖调电影’的醇厚感，我们再稍微往右拉一点点色温，让整张照片笼罩在夕阳的余温中。",
+      "order": 4
+    },
+    {
+      "slider": "vibrance",
+      "direction": "increase",
+      "targetRange": {
+        "min": 5,
+        "max": 15
+      },
+      "reason": "稍微提升‘自然饱和度’，能让天空中原本黯淡的色彩层次更加丰满，同时不会让已经很浓的橙色过曝溢出。",
+      "order": 5
+    }
+  ]
+}

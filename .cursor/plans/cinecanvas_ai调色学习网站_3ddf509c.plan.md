@@ -12,11 +12,11 @@ todos:
     content: 上传后先降采样：工作台预览长边 2000px、送 AI 分析长边约 1280px，保留原图引用供二期全分辨率导出
     status: completed
   - id: ai-provider
-    content: 实现可切换 AI provider 接口 + Qwen-VL 默认实现，定义分析/教案的提示词
-    status: pending
+    content: 实现可切换 AI provider 接口 + Gemini 3.5 Flash 默认实现，定义分析/教案的提示词
+    status: completed
   - id: ai-validation
     content: 用 zod 定义输出 schema，实现 withValidation：字段与数值区间校验 + 自我修复重试(上限2次) + 纯文字降级
-    status: pending
+    status: completed
   - id: analysis-report
     content: 实现上传区与分析报告卡片 UI（一句诊断/优点/问题清单/调色方向）
     status: pending
@@ -37,7 +37,7 @@ isProject: false
 ## 定位与已确认决策
 
 - **产品形态**：概念原型 / 作品集 Demo，前端为主，AI 接真实模型，不做复杂账号系统。
-- **AI**：可切换 provider 接口，默认接国内多模态模型（Qwen-VL / DashScope），带 **schema 校验 + 重试 + 降级**。
+- **AI**：可切换 provider 接口，默认接 **Gemini 3.5 Flash**（`VITE_GEMINI_API_KEY`），带 **schema 校验 + 重试 + 降级**。
 - **两大功能**：(1) 照片分析→分步指导→实时调色；(2) 精选电影风格库，选卡后生成「靠近该风格」的分步教案。共用同一套工作台。
 - **教学交互**：动手式——AI 告诉你调哪个滑块/方向/原因，滑块显示目标区间高亮，用户自己拖到目标区间获得「达成」反馈。
 - **MVP 滑块**：10 个基础项；曲线 + HSL 分通道 = 二期「进阶模式」。
@@ -103,6 +103,7 @@ graph TD
 - 起点为中性（所有滑块=0），风格卡自带**量化目标值** `targetAdjustments`。
 - AI 的职责是**结合当前照片实际情况微调这组目标值**（如照片本就偏暖则减少色温增量），并为每步给出原因，而不是「凭感觉编数值」。
 - 因此 `films.ts` 的目标值必须与 steps 的 `slider` 枚举、`targetRange` 值域**完全对齐**，AI 做的是「当前值→目标值」的差异化解释，输出更稳定。
+- **数据约束**：每张风格卡的 `targetAdjustments` 必须至少有 **4 个非零**滑块（与 `MIN_GRADING_STEPS` 对齐），避免 AI 为凑步数编造「目标=0」的无效步骤。
 
 ## 10 个基础滑块（MVP）
 
