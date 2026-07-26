@@ -19,10 +19,10 @@ todos:
     status: completed
   - id: analysis-report
     content: 实现上传区与分析报告卡片 UI（一句诊断/优点/问题清单/调色方向）
-    status: pending
+    status: completed
   - id: workspace-coach
     content: 实现工作台：左侧 WebGL 预览 + 右侧滑块面板（带目标区间高亮）+ 分步教案卡 StepCoach（方向/原因/达成反馈）
-    status: pending
+    status: completed
   - id: film-library
     content: 实现精选电影风格库：films.ts 每张卡存量化的 targetAdjustments(与10滑块同枚举同值域)，选卡后 AI 基于当前照片微调目标值并生成靠近该风格教案，进入工作台
     status: pending

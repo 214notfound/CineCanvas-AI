@@ -8,18 +8,13 @@
  *
  * 运行：
  *   npx vite-node scripts/test-ai.ts
- * 或在 package.json 加一条：
- *   "test:ai": "vite-node scripts/test-ai.ts"
+ *   npx vite-node scripts/test-ai.ts -- --provider=kimi
+ *   npx vite-node scripts/test-ai.ts -- --provider=gemini
  *
  * 用法：
- *   1. 在 scripts/test-images/ 放几张测试图，文件名即用例名，建议至少放：
- *        underexposed.jpg   —— 明显欠曝
- *        warm-cast.jpg      —— 明显偏黄/偏暖
- *        normal.jpg         —— 正常曝光、没什么大问题
- *   2. 跑之前脚本会先自检 VITE_GEMINI_API_KEY 有没有被读到，读不到会直接提示，不浪费 API 调用。
- *   3. 跑完会在终端打印每张图的分析结果，并在 scripts/test-output/ 落地 JSON，
- *      方便你改了 prompt 之后跟上一次的输出做 diff 对比。
- *
+ *   1. 在 scripts/test-images/ 放几张测试图
+ *   2. 脚本会按 --provider 检查对应的 VITE_*_API_KEY
+ *   3. 结果打印到终端，并写入 scripts/test-output/
  * 本版已对齐真实签名（来自 src/ai/analyzePhoto.ts + src/ai/types.ts）：
  *   - analyzePhoto(input: { imageDataUrl: string }, providerId?: string): Promise<AnalyzeResult>
  *   - generateFilmSteps(input: { imageDataUrl, filmId, filmName, targetAdjustments }, providerId?): Promise<AnalyzeResult>
@@ -49,8 +44,71 @@ const MIME: Record<string, string> = {
   '.webp': 'image/webp',
 }
 
-// 示例电影风格卡，用于测试 generateFilmSteps。
-// 把下面这几个值换成你 films.ts 里某张真实风格卡的 targetAdjustments 会更有意义。
+function resolveProviderId(): string {
+  const arg = process.argv.find((a) => a.startsWith('--provider='))
+  if (arg) return arg.slice('--provider='.length)
+  const fileEnv = loadEnv('development', ROOT, 'VITE_')
+  return fileEnv.VITE_AI_PROVIDER || 'gemini'
+}
+
+/**
+ * vite-node 下 import.meta.env 有时不如 loadEnv 稳；两者都查。
+ * 额外检测 UTF-8 BOM（PowerShell Set-Content -Encoding utf8 常会写入）。
+ */
+function hydrateEnv(prefix: string, names: string[]) {
+  const fileEnv = loadEnv('development', ROOT, prefix)
+  for (const name of names) {
+    const value =
+      (typeof (import.meta.env as Record<string, string | undefined>)[name] === 'string' &&
+        (import.meta.env as Record<string, string | undefined>)[name]) ||
+      fileEnv[name] ||
+      process.env[name]
+    if (value && value.trim()) {
+      ;(import.meta as ImportMeta & { env: Record<string, string> }).env[name] = value.trim()
+      process.env[name] = value.trim()
+    }
+  }
+}
+
+function checkEnvKey(providerId: string) {
+  hydrateEnv('VITE_', [
+    'VITE_GEMINI_API_KEY',
+    'VITE_GEMINI_MODEL',
+    'VITE_KIMI_API_KEY',
+    'VITE_KIMI_MODEL',
+    'VITE_KIMI_BASE_URL',
+    'VITE_AI_PROVIDER',
+  ])
+
+  const keyName = providerId === 'kimi' ? 'VITE_KIMI_API_KEY' : 'VITE_GEMINI_API_KEY'
+  const key = process.env[keyName]
+
+  if (key && key.trim()) {
+    console.log(
+      `✅ provider=${providerId} 读到 ${keyName}（长度 ${key.trim().length}，开头 ${key.trim().slice(0, 6)}...）\n`,
+    )
+    return
+  }
+
+  console.error(`❌ 没读到 ${keyName}（当前 provider=${providerId}）。排查方向：`)
+  const envPath = join(ROOT, '.env')
+  if (existsSync(envPath)) {
+    const buf = readFileSync(envPath)
+    const hasBom = buf.length >= 3 && buf[0] === 0xef && buf[1] === 0xbb && buf[2] === 0xbf
+    if (hasBom) {
+      console.error('   ⚠ 检测到 .env 带 UTF-8 BOM（EF BB BF）。Vite 会把第一个变量名读歪。')
+    } else {
+      console.error(`   · .env 存在；请确认有一行 ${keyName}=...（无引号）`)
+    }
+  } else {
+    console.error('   · 项目根目录没有找到 .env')
+  }
+  if (providerId === 'kimi') {
+    console.error('   · 国内控制台 Key 若失败，可在 .env 加：VITE_KIMI_BASE_URL=https://api.moonshot.cn/v1')
+  }
+  process.exit(1)
+}
+
 const SAMPLE_FILM = {
   filmName: '示例风格-暖调低对比',
   filmId: 'sample-warm',
@@ -60,51 +118,6 @@ SAMPLE_FILM.targetAdjustments.temperature = 25
 SAMPLE_FILM.targetAdjustments.contrast = -15
 SAMPLE_FILM.targetAdjustments.shadows = 10
 SAMPLE_FILM.targetAdjustments.vibrance = 12
-
-/**
- * vite-node 下 import.meta.env 有时不如 loadEnv 稳；两者都查。
- * 额外检测 UTF-8 BOM（PowerShell Set-Content -Encoding utf8 常会写入），
- * 那是 Windows 上「.env 明明有 key 却读不到」的头号原因。
- */
-function checkEnvKey() {
-  const fileEnv = loadEnv('development', ROOT, 'VITE_')
-  const key =
-    (typeof import.meta.env?.VITE_GEMINI_API_KEY === 'string' &&
-      import.meta.env.VITE_GEMINI_API_KEY) ||
-    fileEnv.VITE_GEMINI_API_KEY ||
-    process.env.VITE_GEMINI_API_KEY
-
-  if (key && key.trim()) {
-    // Ensure downstream getGeminiApiKey() sees it even if import.meta.env was empty.
-    if (!import.meta.env.VITE_GEMINI_API_KEY) {
-      ;(import.meta as ImportMeta & { env: Record<string, string> }).env.VITE_GEMINI_API_KEY =
-        key.trim()
-    }
-    if (!process.env.VITE_GEMINI_API_KEY) process.env.VITE_GEMINI_API_KEY = key.trim()
-    console.log(`✅ 读到 VITE_GEMINI_API_KEY（长度 ${key.trim().length}，开头 ${key.trim().slice(0, 6)}...）\n`)
-    return
-  }
-
-  console.error('❌ 没读到 VITE_GEMINI_API_KEY，后面的调用大概率会全部失败。排查方向：')
-  const envPath = join(ROOT, '.env')
-  if (existsSync(envPath)) {
-    const buf = readFileSync(envPath)
-    const hasBom = buf.length >= 3 && buf[0] === 0xef && buf[1] === 0xbb && buf[2] === 0xbf
-    if (hasBom) {
-      console.error('   ⚠ 检测到 .env 带 UTF-8 BOM（EF BB BF）。Vite 会把第一个变量名读歪。')
-      console.error('     修复：用 VS Code 右下角把编码改成「UTF-8」保存（不要「UTF-8 with BOM」），或让我帮你重写无 BOM 的 .env。')
-    } else {
-      console.error('   · .env 存在且未见 BOM；请确认第一行是 VITE_GEMINI_API_KEY=...（无引号、无空格）')
-    }
-  } else {
-    console.error('   · 项目根目录没有找到 .env（应与 package.json 同级）')
-  }
-  console.error('   1) .env 是否在项目根目录，和 package.json 同一层（不是 scripts/ 下）')
-  console.error('   2) 编码必须是 UTF-8 无 BOM（Windows + PowerShell 重定向最容易写出 BOM）')
-  console.error('   3) key 前后不要加引号：写成 VITE_GEMINI_API_KEY=xxx')
-  console.error('   4) 改完 .env 后重新跑本命令即可（不必新开终端）')
-  process.exit(1)
-}
 
 function loadTestImages(): { name: string; imageDataUrl: string }[] {
   mkdirSync(IMAGES_DIR, { recursive: true })
@@ -181,36 +194,45 @@ function printReport(label: string, result: AnalyzeResult) {
 }
 
 async function main() {
-  checkEnvKey()
+  const providerId = resolveProviderId()
+  checkEnvKey(providerId)
   mkdirSync(OUTPUT_DIR, { recursive: true })
   const images = loadTestImages()
+  const outSuffix = providerId === 'gemini' ? '' : `.${providerId}`
 
   for (const { name, imageDataUrl } of images) {
-    // 场景一：普通照片分析
     try {
       const t0 = Date.now()
-      const result = await analyzePhoto({ imageDataUrl })
+      const result = await analyzePhoto({ imageDataUrl }, providerId)
       const ms = Date.now() - t0
-      printReport(`[分析] ${name}  (${ms}ms)`, result)
-      writeFileSync(join(OUTPUT_DIR, `${name}.analyze.json`), JSON.stringify(result, null, 2))
+      printReport(`[分析/${providerId}] ${name}  (${ms}ms)`, result)
+      writeFileSync(
+        join(OUTPUT_DIR, `${name}.analyze${outSuffix}.json`),
+        JSON.stringify(result, null, 2),
+      )
     } catch (err) {
-      console.error(`❌ [分析] ${name} 失败：`, err)
+      console.error(`❌ [分析/${providerId}] ${name} 失败：`, err)
     }
 
-    // 场景二：电影风格教案
     try {
       const t0 = Date.now()
-      const result = await generateFilmSteps({
-        imageDataUrl,
-        filmId: SAMPLE_FILM.filmId,
-        filmName: SAMPLE_FILM.filmName,
-        targetAdjustments: SAMPLE_FILM.targetAdjustments,
-      })
+      const result = await generateFilmSteps(
+        {
+          imageDataUrl,
+          filmId: SAMPLE_FILM.filmId,
+          filmName: SAMPLE_FILM.filmName,
+          targetAdjustments: SAMPLE_FILM.targetAdjustments,
+        },
+        providerId,
+      )
       const ms = Date.now() - t0
-      printReport(`[风格:${SAMPLE_FILM.filmName}] ${name}  (${ms}ms)`, result)
-      writeFileSync(join(OUTPUT_DIR, `${name}.film.json`), JSON.stringify(result, null, 2))
+      printReport(`[风格/${providerId}:${SAMPLE_FILM.filmName}] ${name}  (${ms}ms)`, result)
+      writeFileSync(
+        join(OUTPUT_DIR, `${name}.film${outSuffix}.json`),
+        JSON.stringify(result, null, 2),
+      )
     } catch (err) {
-      console.error(`❌ [风格] ${name} 失败：`, err)
+      console.error(`❌ [风格/${providerId}] ${name} 失败：`, err)
     }
   }
 

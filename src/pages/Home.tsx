@@ -9,12 +9,20 @@ export default function Home() {
       <p className="mt-4 font-serif-sc text-xl text-gold sm:text-2xl">
         在实践中学调色
       </p>
-      <Link
-        to="/workspace"
-        className="mt-10 inline-block rounded-sm bg-paper px-8 py-3 font-serif-sc text-lg text-maroon transition-colors hover:bg-cream"
-      >
-        进入工作台 / Select Your Film
-      </Link>
+      <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
+        <Link
+          to="/analyze"
+          className="inline-block rounded-sm bg-paper px-8 py-3 font-serif-sc text-lg text-maroon transition-colors hover:bg-cream"
+        >
+          分析我的照片
+        </Link>
+        <Link
+          to="/workspace"
+          className="inline-block rounded-sm border border-paper-dim px-8 py-3 font-serif-sc text-lg text-paper transition-colors hover:bg-maroon"
+        >
+          直接进入工作台
+        </Link>
+      </div>
     </main>
   )
 }

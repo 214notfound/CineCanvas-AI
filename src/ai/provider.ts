@@ -1,21 +1,23 @@
 import { geminiProvider } from './geminiProvider'
+import { kimiProvider } from './kimiProvider'
+import { getDefaultProviderId } from './config'
 import type { AiProvider } from './types'
 
 const providers: Record<string, AiProvider> = {
   gemini: geminiProvider,
+  kimi: kimiProvider,
 }
 
-/** Default provider id for this MVP. */
-export const DEFAULT_PROVIDER_ID = 'gemini'
-
 /**
- * Resolve an AI provider by id. Switchable so we can add Qwen / others later
- * without rewriting callers.
+ * Resolve an AI provider by id. Omit id to use VITE_AI_PROVIDER (default gemini).
  */
-export function getAiProvider(id: string = DEFAULT_PROVIDER_ID): AiProvider {
-  const provider = providers[id]
+export function getAiProvider(id?: string): AiProvider {
+  const resolved = id ?? getDefaultProviderId()
+  const provider = providers[resolved]
   if (!provider) {
-    throw new Error(`未知 AI provider: ${id}。可用：${Object.keys(providers).join(', ')}`)
+    throw new Error(
+      `未知 AI provider: ${resolved}。可用：${Object.keys(providers).join(', ')}`,
+    )
   }
   return provider
 }
@@ -23,3 +25,5 @@ export function getAiProvider(id: string = DEFAULT_PROVIDER_ID): AiProvider {
 export function listAiProviders(): AiProvider[] {
   return Object.values(providers)
 }
+
+export { getDefaultProviderId }

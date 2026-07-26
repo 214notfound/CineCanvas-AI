@@ -8,8 +8,9 @@ export type {
   GradingStep,
 } from './types'
 export { isFallbackAdvice } from './types'
-export { getAiProvider, listAiProviders, DEFAULT_PROVIDER_ID } from './provider'
+export { getAiProvider, listAiProviders, getDefaultProviderId } from './provider'
 export { geminiProvider } from './geminiProvider'
+export { kimiProvider } from './kimiProvider'
 export {
   buildAnalyzePhotoPrompt,
   buildFilmStylePrompt,
