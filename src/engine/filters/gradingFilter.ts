@@ -15,7 +15,8 @@ export function createGradingFilter(): Filter {
     resources: {
       gradingUniforms: {
         uExposure: { value: 0, type: 'f32' },
-        uContrast: { value: 1, type: 'f32' },
+        // Contrast is an amount in [-1, 1]; 0 = identity (sigmoid pivot).
+        uContrast: { value: 0, type: 'f32' },
         uHighlights: { value: 0, type: 'f32' },
         uShadows: { value: 0, type: 'f32' },
         uWhites: { value: 0, type: 'f32' },
