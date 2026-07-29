@@ -23,7 +23,7 @@ import {
   type GradeUniforms,
   type Rgb,
 } from '../src/engine/tonalMath'
-import { adjustmentsToUniforms } from '../src/engine/pipeline'
+import { adjustmentsToUniforms, EXPOSURE_STOPS_AT_100 } from '../src/engine/pipeline'
 import { neutralAdjustments } from '../src/engine/sliders'
 
 let failed = 0
@@ -276,13 +276,19 @@ section('Supporting: contrast + recipe smoke')
 
   const adj = {
     ...neutralAdjustments(),
-    exposure: 100 * (0.5 / 1.5),
+    exposure: 100 * (0.5 / EXPOSURE_STOPS_AT_100),
     shadows: 40,
     contrast: 20,
   }
   const recipe = adjustmentsToUniforms(adj)
   assert(approx(recipe.uExposure, 0.5), `recipe exposure ${recipe.uExposure}`)
   assert(approx(recipe.uShadows, 0.4), `recipe shadows ${recipe.uShadows}`)
+
+  const at50 = adjustmentsToUniforms({ ...neutralAdjustments(), exposure: 50 })
+  assert(
+    approx(at50.uExposure, EXPOSURE_STOPS_AT_100 * 0.5),
+    `exposure ±50 → ±${EXPOSURE_STOPS_AT_100 * 0.5} stops (got ${at50.uExposure})`,
+  )
 }
 
 if (failed > 0) {
