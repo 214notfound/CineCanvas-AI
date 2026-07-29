@@ -12,6 +12,8 @@ interface SliderProps {
   step: number
   value: number
   onChange: (value: number) => void
+  /** Fires on pointer/touch down before the value changes — for histogram ghost freeze. */
+  onDragStart?: () => void
   /** Optional structured help copy; when present a "?" tooltip is shown. */
   helpContent?: SliderHelpContent
   /** Coaching target band drawn on the track (current step only). */
@@ -31,6 +33,7 @@ export function Slider({
   step,
   value,
   onChange,
+  onDragStart,
   helpContent,
   targetRange,
   emphasized = false,
@@ -111,6 +114,7 @@ export function Slider({
           step={step}
           value={value}
           disabled={disabled}
+          onPointerDown={() => onDragStart?.()}
           onChange={(e) => onChange(Number(e.target.value))}
           aria-label={label}
           className="grading-slider absolute inset-0 w-full cursor-pointer appearance-none bg-transparent disabled:cursor-not-allowed"

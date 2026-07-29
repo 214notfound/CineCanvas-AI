@@ -82,6 +82,62 @@ export class GradingCanvas {
     updateGradingFilter(this.filter, values)
   }
 
+  /**
+   * Toggle the grading filter on the sprite.
+   * `false` shows the raw original (true before); does not change shader math.
+   */
+  setFilterEnabled(enabled: boolean): void {
+    if (!this.sprite) return
+    this.sprite.filters = enabled ? [this.filter] : null
+  }
+
+  /**
+   * Sample the graded sprite into an ImageData (downscaled for histogram use).
+   * Does not change shader math. Returns null if not ready.
+   */
+  sampleImageData(maxSide = 256): ImageData | null {
+    if (!this.app || !this.sprite || this.destroyed) return null
+
+    const tw = this.sprite.texture.width
+    const th = this.sprite.texture.height
+    if (tw <= 0 || th <= 0) return null
+
+    const resolution = Math.min(1, maxSide / Math.max(tw, th))
+
+    try {
+      // Ensure the filtered sprite has been drawn into a framebuffer.
+      this.app.renderer.render(this.app.stage)
+
+      // Prefer canvas extract — more reliable across WebGL backends than raw pixels.
+      const extracted = this.app.renderer.extract.canvas({
+        target: this.sprite,
+        resolution,
+      }) as HTMLCanvasElement | OffscreenCanvas
+
+      const srcW = extracted.width
+      const srcH = extracted.height
+      if (!srcW || !srcH) return null
+
+      const scale = Math.min(1, maxSide / Math.max(srcW, srcH))
+      const dw = Math.max(1, Math.round(srcW * scale))
+      const dh = Math.max(1, Math.round(srcH * scale))
+
+      const off = document.createElement('canvas')
+      off.width = dw
+      off.height = dh
+      const ctx = off.getContext('2d', { willReadFrequently: true })
+      if (!ctx) return null
+
+      ctx.drawImage(extracted as CanvasImageSource, 0, 0, dw, dh)
+      return ctx.getImageData(0, 0, dw, dh)
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.warn('[GradingCanvas] sampleImageData failed', err)
+      }
+      return null
+    }
+  }
+
   private fit(): void {
     if (!this.app || !this.sprite) return
     const { width: sw, height: sh } = this.app.screen

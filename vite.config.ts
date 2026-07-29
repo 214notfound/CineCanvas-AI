@@ -14,4 +14,8 @@ export default defineConfig({
   server: {
     port: 5173,
   },
+  preview: {
+    // Allow temporary share tunnels (localtunnel / cloudflared hostnames vary)
+    allowedHosts: true,
+  },
 })

@@ -20,7 +20,7 @@ export default function WorkspacePage() {
   const currentStepIndex = useSessionStore((s) => s.currentStepIndex)
   const setCurrentStepIndex = useSessionStore((s) => s.setCurrentStepIndex)
 
-  const containerRef = useGradingCanvas(image?.preview.url ?? null)
+  const { containerRef } = useGradingCanvas(image?.preview.url ?? null)
 
   const lesson =
     analysis && !isFallbackAdvice(analysis) ? analysis : null

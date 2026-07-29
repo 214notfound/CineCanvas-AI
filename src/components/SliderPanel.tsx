@@ -9,6 +9,8 @@ export type { TargetRange } from '@/lib/targetRange'
 interface SliderPanelProps {
   adjustments: Record<SliderId, number>
   onChange: (id: SliderId, value: number) => void
+  /** Fires when the user starts dragging a slider (before value changes). */
+  onDragStart?: (id: SliderId) => void
   /** Slider id for the active coaching step (gets target band + emphasis). */
   activeSliderId?: SliderId | null
   /** Target band for the active step. */
@@ -23,6 +25,7 @@ interface SliderPanelProps {
 export function SliderPanel({
   adjustments,
   onChange,
+  onDragStart,
   activeSliderId = null,
   activeTargetRange = null,
   lockOthers = false,
@@ -55,6 +58,7 @@ export function SliderPanel({
                 step={s.step}
                 value={value}
                 onChange={(v) => onChange(s.id, v)}
+                onDragStart={() => onDragStart?.(s.id)}
                 helpContent={sliderHelpMap[s.id]}
                 targetRange={target ?? undefined}
                 emphasized={isActive}

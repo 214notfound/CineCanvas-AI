@@ -1,0 +1,46 @@
+---
+description: CineCanvas 调色引擎保护与追加式开发铁律（防止大改教学功能时搞坏渲染地基）
+alwaysApply: true
+---
+
+# 调色引擎是保护区，一切新功能追加式
+
+`src/engine/shaders/grading.ts`、`src/engine/tonalMath.ts`、`src/engine/pipeline.ts`
+是本项目的皇冠明珠。发灰/质感问题的根因永远在这条数学管线，不在 AI。
+
+## 铁律
+
+1. **追加，不修改。** 新功能（曲线/HSL/清晰度等）只能新增 shader stage、新增
+   uniform，且默认值必须 no-op（加法项默认 `0`、乘法项/factor 默认 `1`）。
+   **绝不改动现有 10 滑块的管线顺序和数学**，除非任务明确就是修 bug。
+2. **改 `grading.ts` 必须同步 `tonalMath.ts` 并跑 `npm run verify:tonal`。**
+   四条硬标准：黑点锚定、高光软肩斜率递减、拉阴影 HSV 不脱色、中性输出 ≠ identity。
+3. **提交前三连：** `npm run lint` && `npm run verify:tonal` && `npm run build`。
+   改 shader 后浏览器**硬刷新**再看画布（HMR 会握着旧的坏 filter）。
+4. **新教学功能走新路由/新组件**（如 `src/pages/learn/*`），共享引擎但不改
+   `/workspace` 主路径，直到新功能稳定。
+
+## 已知深坑（别复发）
+
+```glsl
+// ❌ tanh 在 GLSL ES 1.0 不存在，直接用会整片黑
+float y = tanh(x);
+// ✅ 用 exp 自实现的 tanhCompat（已在 grading.ts）
+float y = tanhCompat(x);
+```
+
+```ts
+// ❌ uContrast 语义是 amount（0 = identity），不是旧版 multiplier
+uContrast: 1
+// ✅ Filter 默认值必须是 0
+uContrast: 0
+```
+
+- **禁止对 RGB 做加法抬阴影**（抬黑点 + 脱色发灰）。影调一律用亮度比缩放
+  `c *= newLuma / oldLuma`。
+- 清晰度/锐化/纹理需要邻域运算（多 pass 模糊），**不能塞进当前单 pass shader**；
+  必须先引入 RenderTexture 管线，属独立阶段，不要顺手硬写。
+
+## 交接文档
+
+历史决策与坑详见 `docs/handoff/`，改引擎前先读最新一份。

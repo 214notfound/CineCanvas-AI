@@ -27,7 +27,7 @@ export default function CompareDebugPage() {
   const imageSrc =
     sourceMode === 'ramp' ? rampUrl : (sessionImage?.preview.url ?? rampUrl)
 
-  const containerRef = useGradingCanvas(imageSrc)
+  const { containerRef } = useGradingCanvas(imageSrc)
 
   useEffect(() => {
     return () => {
