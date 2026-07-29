@@ -54,6 +54,7 @@ uniform float uTemperature; // -1 (cool) .. 1 (warm)
 uniform float uTint;        // -1 (green) .. 1 (magenta)
 uniform float uVibrance;    // -1 .. 1
 uniform float uSaturation;  // 0 .. 2 (1 = unchanged)
+uniform sampler2D uCurveLut; // 256×1 luminance curve; identity = no-op
 
 const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
 const float MID_GREY = 0.18;
@@ -207,6 +208,11 @@ void main(void)
 
     // Soft-shoulder each channel lightly so overshoots don't hard-clip.
     c = vec3(softShoulder(c.r), softShoulder(c.g), softShoulder(c.b));
+
+    // 5b. User luminance curve (256×1 LUT). Identity texture → exact no-op.
+    float lumaC = max(dot(c, LUMA), EPS);
+    float curved = texture2D(uCurveLut, vec2(clamp(lumaC, 0.0, 1.0), 0.5)).r;
+    c *= max(curved, 0.0) / lumaC;
 
     // 6. Encode to sRGB for perceptual saturation controls.
     c = linearToSrgb3(c);

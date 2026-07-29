@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BeforeAfterFlash } from '@/components/BeforeAfterFlash'
+import { CurvePanel } from '@/components/CurvePanel'
 import { HistogramPanel } from '@/components/HistogramPanel'
 import { SliderPanel } from '@/components/SliderPanel'
 import { UploadZone } from '@/components/UploadZone'
@@ -10,13 +11,15 @@ import { useGradingStore } from '@/store/useGradingStore'
 import { useSessionStore } from '@/store/useSessionStore'
 
 /**
- * Isolated P0 teaching-lab page. Shares the grading engine + session image,
- * but does not alter the `/workspace` coaching flow.
+ * Teaching lab: preview + histogram + flash + luminance curve.
+ * Shares the grading engine; does not alter `/workspace` coaching UI.
  */
 export default function LearnLabPage() {
   const image = useSessionStore((s) => s.image)
   const adjustments = useGradingStore((s) => s.adjustments)
+  const lumaCurve = useGradingStore((s) => s.lumaCurve)
   const setAdjustment = useGradingStore((s) => s.setAdjustment)
+  const setLumaCurve = useGradingStore((s) => s.setLumaCurve)
   const reset = useGradingStore((s) => s.reset)
   const [activeSlider, setActiveSlider] = useState<SliderId | null>(null)
   const [ghostEpoch, setGhostEpoch] = useState(0)
@@ -33,16 +36,19 @@ export default function LearnLabPage() {
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="font-sans text-xs tracking-wide text-gold/80">
-              P0 · 教学地基
+              P1.3 · 曲线
             </p>
             <h1 className="font-display text-3xl font-bold text-cream text-shadow-paper">
               对比实验室
             </h1>
             <p className="mt-1 max-w-xl font-serif-sc text-sm text-paper-dim">
-              拖滑块时看直方图：淡线是拖动前，彩色山是现在；下方句子解释山在怎么动。
+              拖滑块看直方图；右侧可拉亮度曲线（默认对角线 = 不影响画面）。
             </p>
           </div>
           <div className="flex gap-4 font-serif-sc text-gold">
+            <Link to="/learn" className="underline-offset-4 hover:underline">
+              课程
+            </Link>
             <Link to="/workspace" className="underline-offset-4 hover:underline">
               工作台
             </Link>
@@ -56,7 +62,7 @@ export default function LearnLabPage() {
           <UploadZone compact />
           {!image && (
             <p className="mt-2 font-sans text-xs text-paper-dim">
-              刷新后需重新上传照片；滑块数值会保留。
+              刷新后需重新上传照片；滑块与曲线会保留。
             </p>
           )}
         </div>
@@ -100,21 +106,28 @@ export default function LearnLabPage() {
               disabled={!image}
               className="w-fit rounded border border-paper-dim px-4 py-2 font-sans text-sm text-paper hover:bg-maroon disabled:opacity-40"
             >
-              重置全部滑块
+              重置滑块与曲线
             </button>
           </div>
 
-          <SliderPanel
-            adjustments={adjustments}
-            onDragStart={(id) => {
-              setActiveSlider(id)
-              setGhostEpoch((n) => n + 1)
-            }}
-            onChange={(id, value) => {
-              setActiveSlider(id)
-              setAdjustment(id, value)
-            }}
-          />
+          <div className="flex flex-col gap-4">
+            <SliderPanel
+              adjustments={adjustments}
+              onDragStart={(id) => {
+                setActiveSlider(id)
+                setGhostEpoch((n) => n + 1)
+              }}
+              onChange={(id, value) => {
+                setActiveSlider(id)
+                setAdjustment(id, value)
+              }}
+            />
+            <CurvePanel
+              points={lumaCurve}
+              onChange={setLumaCurve}
+              disabled={!image}
+            />
+          </div>
         </div>
       </div>
     </main>

@@ -25,6 +25,12 @@ import {
 } from '../src/engine/tonalMath'
 import { adjustmentsToUniforms, EXPOSURE_STOPS_AT_100 } from '../src/engine/pipeline'
 import { neutralAdjustments } from '../src/engine/sliders'
+import {
+  bakeCurveLut,
+  IDENTITY_CURVE,
+  isIdentityCurve,
+  sCurvePreset,
+} from '../src/engine/curve'
 
 let failed = 0
 let passed = 0
@@ -289,6 +295,64 @@ section('Supporting: contrast + recipe smoke')
     approx(at50.uExposure, EXPOSURE_STOPS_AT_100 * 0.5),
     `exposure ±50 → ±${EXPOSURE_STOPS_AT_100 * 0.5} stops (got ${at50.uExposure})`,
   )
+}
+
+// ---------------------------------------------------------------------------
+// 5. Luminance curve LUT (append-only; identity = no-op)
+// ---------------------------------------------------------------------------
+section('5. Luminance curve LUT (identity no-op + monotone)')
+
+{
+  const idLut = bakeCurveLut(IDENTITY_CURVE)
+  assert(idLut.length === 256, `identity LUT length ${idLut.length}`)
+  let idOk = true
+  for (let i = 0; i < 256; i++) {
+    const x = i / 255
+    if (!approx(idLut[i], x, 1e-5)) {
+      idOk = false
+      break
+    }
+  }
+  assert(idOk, 'identity LUT is y=x')
+  assert(isIdentityCurve(IDENTITY_CURVE), 'isIdentityCurve(IDENTITY)')
+
+  const mid = [0.35, 0.35, 0.35] as const
+  const without = gradePixelLinear([...mid], NEUTRAL_UNIFORMS)
+  const withId = gradePixelLinear([...mid], {
+    ...NEUTRAL_UNIFORMS,
+    curveLut: idLut,
+  })
+  assert(
+    approx(without[0], withId[0], 1e-5) &&
+      approx(without[1], withId[1], 1e-5) &&
+      approx(without[2], withId[2], 1e-5),
+    'identity curveLut matches pre-curve pixel',
+  )
+
+  const sLut = bakeCurveLut(sCurvePreset())
+  let mono = true
+  for (let i = 1; i < sLut.length; i++) {
+    if (sLut[i] + 1e-6 < sLut[i - 1]) {
+      mono = false
+      break
+    }
+  }
+  assert(mono, 'S-curve preset LUT is monotone non-decreasing')
+
+  const sOut = gradePixelLinear([0.18, 0.18, 0.18], {
+    ...NEUTRAL_UNIFORMS,
+    curveLut: sLut,
+  })[0]
+  const sMid = gradePixelLinear([0.5, 0.5, 0.5], {
+    ...NEUTRAL_UNIFORMS,
+    curveLut: sLut,
+  })[0]
+  const flatShadow = gradePixelLinear([0.18, 0.18, 0.18], NEUTRAL_UNIFORMS)[0]
+  assert(
+    sOut < flatShadow - 0.005,
+    `S-curve darkens shadows (${flatShadow.toFixed(4)} → ${sOut.toFixed(4)})`,
+  )
+  assert(sMid > 0.2, `S-curve mid still visible (${sMid.toFixed(4)})`)
 }
 
 if (failed > 0) {

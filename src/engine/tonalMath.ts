@@ -117,6 +117,11 @@ export interface GradeUniforms {
   tint: number
   vibrance: number
   saturation: number
+  /**
+   * Optional 256-entry luminance LUT (after contrast / soft-shoulder).
+   * Omit or pass identity → no-op (matches default shader texture).
+   */
+  curveLut?: Float32Array
 }
 
 export const NEUTRAL_UNIFORMS: GradeUniforms = {
@@ -130,6 +135,16 @@ export const NEUTRAL_UNIFORMS: GradeUniforms = {
   tint: 0,
   vibrance: 0,
   saturation: 1,
+}
+
+function sampleCurveLutOptional(lut: Float32Array | undefined, x: number): number {
+  if (!lut || lut.length < 2) return x
+  const t = Math.max(0, Math.min(1, x)) * (lut.length - 1)
+  const i = Math.floor(t)
+  const f = t - i
+  const a = lut[i]
+  const b = lut[Math.min(i + 1, lut.length - 1)]
+  return a + (b - a) * f
 }
 
 /**
@@ -160,6 +175,10 @@ export function gradePixelLinear(rgbIn: Rgb, u: GradeUniforms): Rgb {
   c = applyLumaRatio(c, applyContrast(luma3, u.contrast))
 
   c = [softShoulder(c[0]), softShoulder(c[1]), softShoulder(c[2])]
+
+  const lumaC = Math.max(lumaOf(c), EPS)
+  const curved = sampleCurveLutOptional(u.curveLut, lumaC)
+  c = applyLumaRatio(c, Math.max(curved, 0))
 
   let enc: Rgb = [linearToSrgb(c[0]), linearToSrgb(c[1]), linearToSrgb(c[2])]
 

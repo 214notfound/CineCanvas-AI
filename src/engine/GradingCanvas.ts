@@ -1,5 +1,10 @@
 import { Application, Filter, Sprite, Texture } from 'pixi.js'
-import { createGradingFilter, updateGradingFilter } from './filters/gradingFilter'
+import {
+  createGradingFilter,
+  updateCurveLut,
+  updateGradingFilter,
+} from './filters/gradingFilter'
+import type { CurvePoint } from './curve'
 import type { GradingUniformValues } from './pipeline'
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -80,6 +85,11 @@ export class GradingCanvas {
   /** Cheap per-frame update of the grading uniforms. */
   setUniforms(values: GradingUniformValues): void {
     updateGradingFilter(this.filter, values)
+  }
+
+  /** Update luminance curve LUT (identity points = shader no-op). */
+  setCurvePoints(points: CurvePoint[]): void {
+    updateCurveLut(this.filter, points)
   }
 
   /**

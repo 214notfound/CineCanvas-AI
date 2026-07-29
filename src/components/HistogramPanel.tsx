@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Adjustments, SliderId } from '@/engine/sliders'
+import type { CurvePoint } from '@/engine/curve'
 import {
   cloneHistogram,
   computeGradedHistogram,
@@ -26,6 +27,8 @@ interface HistogramPanelProps {
   disabled?: boolean
   /** When set, histogram follows these values instead of the grading store. */
   adjustments?: Adjustments
+  /** Optional curve override; store curve used when omitted. */
+  lumaCurve?: CurvePoint[]
 }
 
 const H = 104
@@ -41,6 +44,7 @@ export function HistogramPanel({
   ghostEpoch,
   disabled = false,
   adjustments: adjustmentsProp,
+  lumaCurve: lumaCurveProp,
 }: HistogramPanelProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const sourceRef = useRef<ImageData | null>(null)
@@ -49,6 +53,7 @@ export function HistogramPanel({
   const rafRef = useRef<number | null>(null)
   const activeSliderRef = useRef(activeSlider)
   const adjustmentsRef = useRef<Adjustments | null>(null)
+  const lumaCurveRef = useRef<CurvePoint[] | null>(null)
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>(
     'idle',
   )
@@ -56,8 +61,11 @@ export function HistogramPanel({
   const [diagnosis, setDiagnosis] = useState<string | null>(null)
   const [hasGhost, setHasGhost] = useState(false)
   const storeAdjustments = useGradingStore((s) => s.adjustments)
+  const storeCurve = useGradingStore((s) => s.lumaCurve)
   const adjustments = adjustmentsProp ?? storeAdjustments
+  const lumaCurve = lumaCurveProp ?? storeCurve
   adjustmentsRef.current = adjustments
+  lumaCurveRef.current = lumaCurve
 
   activeSliderRef.current = activeSlider
 
@@ -171,6 +179,7 @@ export function HistogramPanel({
       const hist = computeGradedHistogram(
         source,
         adjustmentsRef.current ?? useGradingStore.getState().adjustments,
+        lumaCurveRef.current ?? useGradingStore.getState().lumaCurve,
       )
       histRef.current = hist
       setDiagnosis(diagnoseHistogram(hist).verdict)
@@ -250,16 +259,16 @@ export function HistogramPanel({
   }, [imageUrl, disabled])
 
   useEffect(() => {
-    if (adjustmentsProp) return
+    if (adjustmentsProp || lumaCurveProp) return
     return useGradingStore.subscribe(() => {
       if (sourceRef.current) scheduleRecompute()
     })
-  }, [adjustmentsProp])
+  }, [adjustmentsProp, lumaCurveProp])
 
   useEffect(() => {
-    if (!adjustmentsProp) return
+    if (!adjustmentsProp && !lumaCurveProp) return
     if (sourceRef.current) scheduleRecompute()
-  }, [adjustmentsProp])
+  }, [adjustmentsProp, lumaCurveProp])
 
   useEffect(() => {
     if (status === 'ready' && sourceRef.current) {

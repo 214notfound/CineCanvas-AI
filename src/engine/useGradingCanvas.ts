@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { GradingCanvas } from './GradingCanvas'
 import { adjustmentsToUniforms } from './pipeline'
 import type { Adjustments } from './sliders'
+import type { CurvePoint } from './curve'
 import { useGradingStore } from '@/store/useGradingStore'
 
 export interface UseGradingCanvasOptions {
@@ -10,6 +11,8 @@ export interface UseGradingCanvasOptions {
    * Used by `/learn/lessons/*` so practice does not pollute the workspace.
    */
   adjustments?: Adjustments
+  /** Optional curve override (lessons). Store curve used when omitted. */
+  lumaCurve?: CurvePoint[]
 }
 
 export interface UseGradingCanvasResult {
@@ -20,35 +23,29 @@ export interface UseGradingCanvasResult {
   showGraded: () => void
   /** Whether the canvas has finished Pixi init. */
   ready: boolean
-  /**
-   * Sample graded pixels for histogram / heatmap.
-   * Safe to call from rAF; returns null if canvas not ready.
-   */
   sampleImageData: (maxSide?: number) => ImageData | null
-  /**
-   * Bumps when the image finishes loading so consumers can re-sample.
-   * Adjustment changes should be observed via the grading store instead.
-   */
   imageEpoch: number
 }
 
 /**
  * Binds a GradingCanvas to a container element and keeps it in sync with the
- * grading store (or an explicit adjustments override for lessons).
+ * grading store (or explicit overrides for lessons).
  */
 export function useGradingCanvas(
   imageSrc: string | null,
   options?: UseGradingCanvasOptions,
 ): UseGradingCanvasResult {
   const externalAdj = options?.adjustments
+  const externalCurve = options?.lumaCurve
   const useExternal = externalAdj !== undefined
 
-  // Cast: React 18 useRef(null) infers `HTMLDivElement | null`; JSX ref wants RefObject<T>.
   const containerRef = useRef<HTMLDivElement>(null) as RefObject<HTMLDivElement>
   const canvasRef = useRef<GradingCanvas | null>(null)
   const showingOriginalRef = useRef(false)
   const externalRef = useRef(externalAdj)
   externalRef.current = externalAdj
+  const curveRef = useRef(externalCurve)
+  curveRef.current = externalCurve
 
   const [ready, setReady] = useState(false)
   const [imageEpoch, setImageEpoch] = useState(0)
@@ -57,6 +54,18 @@ export function useGradingCanvas(
     if (useExternal && externalRef.current) return externalRef.current
     return useGradingStore.getState().adjustments
   }, [useExternal])
+
+  const resolveCurve = useCallback((): CurvePoint[] => {
+    if (curveRef.current) return curveRef.current
+    return useGradingStore.getState().lumaCurve
+  }, [])
+
+  const pushAll = useCallback(() => {
+    const gc = canvasRef.current
+    if (!gc) return
+    gc.setUniforms(adjustmentsToUniforms(resolveAdjustments()))
+    gc.setCurvePoints(resolveCurve())
+  }, [resolveAdjustments, resolveCurve])
 
   useEffect(() => {
     const el = containerRef.current
@@ -68,7 +77,7 @@ export function useGradingCanvas(
 
     gc.init().then(() => {
       if (cancelled) return
-      gc.setUniforms(adjustmentsToUniforms(resolveAdjustments()))
+      pushAll()
       setReady(true)
     })
 
@@ -78,33 +87,31 @@ export function useGradingCanvas(
       gc.destroy()
       canvasRef.current = null
     }
-  }, [resolveAdjustments])
+  }, [pushAll])
 
   useEffect(() => {
     if (!ready || !imageSrc) return
     showingOriginalRef.current = false
     void canvasRef.current?.setImage(imageSrc).then(() => {
       canvasRef.current?.setFilterEnabled(true)
-      canvasRef.current?.setUniforms(adjustmentsToUniforms(resolveAdjustments()))
+      pushAll()
       setImageEpoch((n) => n + 1)
     })
-  }, [ready, imageSrc, resolveAdjustments])
+  }, [ready, imageSrc, pushAll])
 
-  // Store-driven path (lab / workspace).
   useEffect(() => {
     if (useExternal) return
-    return useGradingStore.subscribe((state) => {
+    return useGradingStore.subscribe(() => {
       if (showingOriginalRef.current) return
-      canvasRef.current?.setUniforms(adjustmentsToUniforms(state.adjustments))
+      pushAll()
     })
-  }, [useExternal])
+  }, [useExternal, pushAll])
 
-  // Lesson-driven path.
   useEffect(() => {
     if (!useExternal || !externalAdj) return
     if (showingOriginalRef.current) return
-    canvasRef.current?.setUniforms(adjustmentsToUniforms(externalAdj))
-  }, [useExternal, externalAdj])
+    pushAll()
+  }, [useExternal, externalAdj, externalCurve, pushAll])
 
   const showOriginal = useCallback(() => {
     showingOriginalRef.current = true
@@ -114,8 +121,8 @@ export function useGradingCanvas(
   const showGraded = useCallback(() => {
     showingOriginalRef.current = false
     canvasRef.current?.setFilterEnabled(true)
-    canvasRef.current?.setUniforms(adjustmentsToUniforms(resolveAdjustments()))
-  }, [resolveAdjustments])
+    pushAll()
+  }, [pushAll])
 
   const sampleImageData = useCallback((maxSide = 256) => {
     return canvasRef.current?.sampleImageData(maxSide) ?? null

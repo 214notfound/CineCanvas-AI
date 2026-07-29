@@ -1,5 +1,6 @@
 import type { Adjustments, SliderId } from '@/engine/sliders'
 import { adjustmentsToUniforms } from '@/engine/pipeline'
+import { bakeCurveLut, IDENTITY_CURVE, type CurvePoint } from '@/engine/curve'
 import {
   gradePixelLinear,
   srgbToLinear,
@@ -59,7 +60,10 @@ export function computeHistogram(image: ImageData): HistogramData {
   return { r, g, b, luma, pixelCount }
 }
 
-function toGradeUniforms(adj: Adjustments): GradeUniforms {
+function toGradeUniforms(
+  adj: Adjustments,
+  lumaCurve: CurvePoint[] = IDENTITY_CURVE,
+): GradeUniforms {
   const u = adjustmentsToUniforms(adj)
   return {
     exposure: u.uExposure,
@@ -72,6 +76,7 @@ function toGradeUniforms(adj: Adjustments): GradeUniforms {
     tint: u.uTint,
     vibrance: u.uVibrance,
     saturation: u.uSaturation,
+    curveLut: bakeCurveLut(lumaCurve),
   }
 }
 
@@ -82,8 +87,9 @@ function toGradeUniforms(adj: Adjustments): GradeUniforms {
 export function computeGradedHistogram(
   source: ImageData,
   adjustments: Adjustments,
+  lumaCurve: CurvePoint[] = IDENTITY_CURVE,
 ): HistogramData {
-  const uniforms = toGradeUniforms(adjustments)
+  const uniforms = toGradeUniforms(adjustments, lumaCurve)
   const r = new Uint32Array(BINS)
   const g = new Uint32Array(BINS)
   const b = new Uint32Array(BINS)
