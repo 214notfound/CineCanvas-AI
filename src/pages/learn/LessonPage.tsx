@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { BeforeAfterFlash } from '@/components/BeforeAfterFlash'
 import { HistogramPanel } from '@/components/HistogramPanel'
-import { LessonQuizPanel } from '@/components/learn/LessonQuizPanel'
 import { SliderPanel } from '@/components/SliderPanel'
 import { getLesson } from '@/data/lessons'
 import {
@@ -14,10 +13,10 @@ import {
 import { useGradingCanvas } from '@/engine/useGradingCanvas'
 import { markLessonComplete } from '@/lib/lessonProgress'
 
-type Phase = 'intro' | 'explore' | 'quiz' | 'done'
+type Phase = 'intro' | 'explore' | 'done'
 
 /**
- * Single mechanism lesson: intro → explore (hist + flash) → quiz → done.
+ * Single mechanism lesson: intro → explore (hist + flash) → done.
  * Uses local adjustments so workspace store is untouched.
  */
 export default function LessonPage() {
@@ -31,7 +30,6 @@ export default function LessonPage() {
   const [activeSlider, setActiveSlider] = useState<SliderId | null>(null)
   const [ghostEpoch, setGhostEpoch] = useState(0)
 
-  // Remount-equivalent reset when navigating lesson → lesson.
   useEffect(() => {
     setPhase('intro')
     setAdjustments(neutralAdjustments())
@@ -55,6 +53,8 @@ export default function LessonPage() {
     return <Navigate to="/learn" replace />
   }
 
+  const lessonId = lesson.id
+
   function setAdjustment(sliderId: SliderId, value: number) {
     setAdjustments((prev) => ({
       ...prev,
@@ -66,6 +66,11 @@ export default function LessonPage() {
     setAdjustments(neutralAdjustments())
     setActiveSlider(null)
     setGhostEpoch(0)
+  }
+
+  function completeLesson() {
+    markLessonComplete(lessonId)
+    setPhase('done')
   }
 
   return (
@@ -112,7 +117,6 @@ export default function LessonPage() {
           </section>
         )}
 
-        {/* Keep canvas mounted from first paint so Pixi can init (hidden on intro). */}
         <div className={phase === 'intro' ? 'hidden' : undefined}>
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div className="flex flex-col gap-4">
@@ -143,24 +147,13 @@ export default function LessonPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setPhase('quiz')}
+                      onClick={completeLesson}
                       className="rounded-sm bg-paper px-4 py-2 font-serif-sc text-sm text-maroon hover:bg-cream"
                     >
-                      去做辨认题 →
+                      完成本关 →
                     </button>
                   </div>
                 </>
-              )}
-
-              {phase === 'quiz' && (
-                <LessonQuizPanel
-                  imageSrc={lesson.imageSrc}
-                  quiz={lesson.quiz}
-                  onComplete={() => {
-                    markLessonComplete(lesson.id)
-                    setPhase('done')
-                  }}
-                />
               )}
 
               {phase === 'done' && (

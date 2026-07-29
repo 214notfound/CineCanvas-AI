@@ -21,7 +21,7 @@ export default function LearnIndexPage() {
               辨析课程
             </h1>
             <p className="mt-2 max-w-xl font-serif-sc text-sm text-paper-dim">
-              用固定诊断图感受参数区别：练习拖滑块 → 直方图与闪回 → 辨认题通关。
+              用固定诊断图感受参数区别：介绍 → 拖滑块练习（直方图与闪回）→ 完成本关。
               不依赖 AI，也不进工作台。
             </p>
           </div>
