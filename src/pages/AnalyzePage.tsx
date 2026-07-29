@@ -103,7 +103,9 @@ export default function AnalyzePage() {
 
             {!image && (
               <p className="font-sans text-xs text-paper-dim">
-                提示：会先自动压缩预览图与送 AI 的小图，手机大图也能流畅分析。
+                {analysis
+                  ? '刷新后照片需重新上传；右侧教案与滑块数值已保留，上传后可继续练习。'
+                  : '提示：会先自动压缩预览图与送 AI 的小图，手机大图也能流畅分析。'}
               </p>
             )}
           </div>

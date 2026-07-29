@@ -122,33 +122,50 @@ export async function loadHistogramSource(
   maxSide = 240,
 ): Promise<ImageData> {
   // Prefer fetch→bitmap: works for blob: and http(s), avoids <img crossOrigin traps.
+  // SVG often fails createImageBitmap in Chromium — fall back to <img>.
   const res = await fetch(url)
   if (!res.ok) throw new Error(`histogram fetch failed: ${res.status}`)
   const blob = await res.blob()
+  // Vite SPA fallback returns index.html when the static path casing misses.
+  if (blob.type.includes('text/html')) {
+    throw new Error(`histogram asset missing or wrong case: ${url}`)
+  }
+  const objectUrl = URL.createObjectURL(blob)
 
   let bitmap: ImageBitmap | null = null
   let width = 0
   let height = 0
   let drawSource: CanvasImageSource
 
-  if (typeof createImageBitmap === 'function') {
-    bitmap = await createImageBitmap(blob)
-    width = bitmap.width
-    height = bitmap.height
-    drawSource = bitmap
-  } else {
-    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const el = new Image()
-      el.onload = () => resolve(el)
-      el.onerror = () => reject(new Error('histogram image decode failed'))
-      el.src = URL.createObjectURL(blob)
-    })
-    width = img.naturalWidth
-    height = img.naturalHeight
-    drawSource = img
-  }
-
   try {
+    if (typeof createImageBitmap === 'function') {
+      try {
+        bitmap = await createImageBitmap(blob)
+        width = bitmap.width
+        height = bitmap.height
+        drawSource = bitmap
+      } catch {
+        bitmap = null
+      }
+    }
+
+    if (!bitmap || width < 1 || height < 1) {
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const el = new Image()
+        el.onload = () => resolve(el)
+        el.onerror = () => reject(new Error('histogram image decode failed'))
+        el.src = objectUrl
+      })
+      width = img.naturalWidth || img.width
+      height = img.naturalHeight || img.height
+      // SVG without intrinsic size can still report 0 — force a teaching default.
+      if (width < 1 || height < 1) {
+        width = 960
+        height = 640
+      }
+      drawSource = img
+    }
+
     const scale = Math.min(1, maxSide / Math.max(width, height))
     const w = Math.max(1, Math.round(width * scale))
     const h = Math.max(1, Math.round(height * scale))
@@ -157,10 +174,11 @@ export async function loadHistogramSource(
     canvas.height = h
     const ctx = canvas.getContext('2d', { willReadFrequently: true })
     if (!ctx) throw new Error('2d context unavailable')
-    ctx.drawImage(drawSource, 0, 0, w, h)
+    ctx.drawImage(drawSource!, 0, 0, w, h)
     return ctx.getImageData(0, 0, w, h)
   } finally {
     bitmap?.close()
+    URL.revokeObjectURL(objectUrl)
   }
 }
 

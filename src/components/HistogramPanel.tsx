@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { SliderId } from '@/engine/sliders'
+import type { Adjustments, SliderId } from '@/engine/sliders'
 import {
   cloneHistogram,
   computeGradedHistogram,
@@ -24,6 +24,8 @@ interface HistogramPanelProps {
    */
   ghostEpoch: number
   disabled?: boolean
+  /** When set, histogram follows these values instead of the grading store. */
+  adjustments?: Adjustments
 }
 
 const H = 104
@@ -38,6 +40,7 @@ export function HistogramPanel({
   activeSlider,
   ghostEpoch,
   disabled = false,
+  adjustments: adjustmentsProp,
 }: HistogramPanelProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const sourceRef = useRef<ImageData | null>(null)
@@ -45,13 +48,16 @@ export function HistogramPanel({
   const ghostRef = useRef<HistogramData | null>(null)
   const rafRef = useRef<number | null>(null)
   const activeSliderRef = useRef(activeSlider)
+  const adjustmentsRef = useRef<Adjustments | null>(null)
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>(
     'idle',
   )
   const [helpOpen, setHelpOpen] = useState(false)
   const [diagnosis, setDiagnosis] = useState<string | null>(null)
   const [hasGhost, setHasGhost] = useState(false)
-  const adjustments = useGradingStore((s) => s.adjustments)
+  const storeAdjustments = useGradingStore((s) => s.adjustments)
+  const adjustments = adjustmentsProp ?? storeAdjustments
+  adjustmentsRef.current = adjustments
 
   activeSliderRef.current = activeSlider
 
@@ -164,7 +170,7 @@ export function HistogramPanel({
     try {
       const hist = computeGradedHistogram(
         source,
-        useGradingStore.getState().adjustments,
+        adjustmentsRef.current ?? useGradingStore.getState().adjustments,
       )
       histRef.current = hist
       setDiagnosis(diagnoseHistogram(hist).verdict)
@@ -244,10 +250,16 @@ export function HistogramPanel({
   }, [imageUrl, disabled])
 
   useEffect(() => {
+    if (adjustmentsProp) return
     return useGradingStore.subscribe(() => {
       if (sourceRef.current) scheduleRecompute()
     })
-  }, [])
+  }, [adjustmentsProp])
+
+  useEffect(() => {
+    if (!adjustmentsProp) return
+    if (sourceRef.current) scheduleRecompute()
+  }, [adjustmentsProp])
 
   useEffect(() => {
     if (status === 'ready' && sourceRef.current) {

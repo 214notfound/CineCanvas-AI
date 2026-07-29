@@ -20,6 +20,8 @@ interface SliderPanelProps {
    * Free-practice mode (no lesson) leaves all enabled.
    */
   lockOthers?: boolean
+  /** When set, only these sliders are shown (lesson explore phase). */
+  allowedSliders?: SliderId[] | null
 }
 
 export function SliderPanel({
@@ -29,11 +31,18 @@ export function SliderPanel({
   activeSliderId = null,
   activeTargetRange = null,
   lockOthers = false,
+  allowedSliders = null,
 }: SliderPanelProps) {
-  const light = SLIDERS.filter((s) => s.group === 'light')
-  const color = SLIDERS.filter((s) => s.group === 'color')
+  const allow = allowedSliders ? new Set(allowedSliders) : null
+  const light = SLIDERS.filter(
+    (s) => s.group === 'light' && (!allow || allow.has(s.id)),
+  )
+  const color = SLIDERS.filter(
+    (s) => s.group === 'color' && (!allow || allow.has(s.id)),
+  )
 
   function renderGroup(title: string, defs: typeof SLIDERS) {
+    if (defs.length === 0) return null
     return (
       <div>
         <h3 className="mb-2 font-serif-sc text-xs font-semibold tracking-wide text-maroon/70">

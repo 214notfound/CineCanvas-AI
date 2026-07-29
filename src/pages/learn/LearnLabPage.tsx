@@ -54,6 +54,11 @@ export default function LearnLabPage() {
 
         <div className="mb-5 max-w-md">
           <UploadZone compact />
+          {!image && (
+            <p className="mt-2 font-sans text-xs text-paper-dim">
+              刷新后需重新上传照片；滑块数值会保留。
+            </p>
+          )}
         </div>
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">

@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import {
   type Adjustments,
   type SliderId,
@@ -17,12 +18,17 @@ interface GradingState {
   reset: () => void
 }
 
-export const useGradingStore = create<GradingState>((set) => ({
-  adjustments: neutralAdjustments(),
-  setAdjustment: (id, value) =>
-    set((state) => ({
-      adjustments: { ...state.adjustments, [id]: clampSlider(id, value) },
-    })),
-  setAll: (values) => set({ adjustments: { ...values } }),
-  reset: () => set({ adjustments: neutralAdjustments() }),
-}))
+export const useGradingStore = create<GradingState>()(
+  persist(
+    (set) => ({
+      adjustments: neutralAdjustments(),
+      setAdjustment: (id, value) =>
+        set((state) => ({
+          adjustments: { ...state.adjustments, [id]: clampSlider(id, value) },
+        })),
+      setAll: (values) => set({ adjustments: { ...values } }),
+      reset: () => set({ adjustments: neutralAdjustments() }),
+    }),
+    { name: 'cinecanvas-grading' },
+  ),
+)

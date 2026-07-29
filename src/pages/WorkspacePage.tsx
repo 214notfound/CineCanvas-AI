@@ -57,15 +57,19 @@ export default function WorkspacePage() {
 
         {!image && (
           <div className="mb-6 rounded-lg border border-dashed border-paper-dim/50 bg-film/40 px-5 py-4">
-            <p className="font-serif-sc text-cream">还没有照片</p>
+            <p className="font-serif-sc text-cream">
+              {analysis ? '教案还在，照片需重新上传' : '还没有照片'}
+            </p>
             <p className="mt-1 font-sans text-sm text-paper-dim">
-              请先去分析页上传并完成 AI 分析，再回来动手调色。
+              {analysis
+                ? '刷新后本地预览地址会失效。请回分析页重新上传同一张（或任意）照片；滑块数值与分步教案已保留。'
+                : '请先去分析页上传并完成 AI 分析，再回来动手调色。'}
             </p>
             <Link
               to="/analyze"
               className="mt-3 inline-block rounded-sm bg-paper px-4 py-2 font-serif-sc text-sm text-maroon hover:bg-cream"
             >
-              去分析照片 →
+              {analysis ? '去重新上传 →' : '去分析照片 →'}
             </Link>
           </div>
         )}

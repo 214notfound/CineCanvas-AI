@@ -11,6 +11,12 @@ export default function Home() {
       </p>
       <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
         <Link
+          to="/learn"
+          className="inline-block rounded-sm bg-gold px-8 py-3 font-serif-sc text-lg text-ink transition-colors hover:brightness-110"
+        >
+          辨析课程
+        </Link>
+        <Link
           to="/analyze"
           className="inline-block rounded-sm bg-paper px-8 py-3 font-serif-sc text-lg text-maroon transition-colors hover:bg-cream"
         >
@@ -20,7 +26,7 @@ export default function Home() {
           to="/workspace"
           className="inline-block rounded-sm border border-paper-dim px-8 py-3 font-serif-sc text-lg text-paper transition-colors hover:bg-maroon"
         >
-          直接进入工作台
+          工作台
         </Link>
       </div>
     </main>
