@@ -1,8 +1,13 @@
 # P1 实施步骤规划
 
+> **状态（2026-07-31）：已被取代，勿按本文顺序开工。**  
+> 当前真相 → [`docs/CURRENT.md`](../CURRENT.md)  
+> 当前主计划 → [`2026-07-31-slider-mastery-plan.md`](./2026-07-31-slider-mastery-plan.md)  
+> 曲线/HSL 后移；先做评分内核 → 临摹 → 冲印接审美库。旧 handoff 已归档到 `docs/archive/`。
+
 > Date: 2026-07-29  
 > Parent: `[2026-07-28-teaching-first-roadmap.md](./2026-07-28-teaching-first-roadmap.md)`  
-> Handoff: `[../handoff/2026-07-29-agent-teaching-p0-histogram.md](../handoff/2026-07-29-agent-teaching-p0-histogram.md)`
+> Handoff（archived）: `[../archive/2026-07-29-agent-teaching-p0-histogram.md](../archive/2026-07-29-agent-teaching-p0-histogram.md)`
 
 **Goal:** 在不碰现有 10 滑块数学的前提下，落地 A 组引擎扩展（曲线/HSL）+ 第一层辨析关卡 + 第二层匹配闭环；教学全部走 `/learn/`*。
 

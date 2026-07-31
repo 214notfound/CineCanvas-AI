@@ -23,6 +23,8 @@ todos:
 isProject: false
 ---
 
+> **已归档（2026-07-31）。** 当前真相 → [`docs/CURRENT.md`](../CURRENT.md)；活跃交接 → [`docs/handoff/2026-07-31-agent-slider-mastery.md`](../handoff/2026-07-31-agent-slider-mastery.md)。
+
 # P1 教学路线续作 · Agent 交接
 
 > Date: 2026-07-30  
